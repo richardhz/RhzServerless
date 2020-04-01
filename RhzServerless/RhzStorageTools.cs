@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.Storage;
+﻿using Microsoft.Azure.WebJobs;
+using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Table;
 using System.Globalization;
@@ -59,37 +60,16 @@ namespace RhzServerless
         }
 
 
-        public static async Task<string> GetTextFromBlob(CloudBlobClient client, string container, string blobName, string defaultContent = null)
+        public static async Task<string> ReadTextFromBlob(IBinder binder, string container, string blobName, string connectionName)
         {
-            string htmlText = string.Empty;
+            var blob = await binder.BindAsync<TextReader>(
+                    new BlobAttribute(blobPath: $"{container}/{blobName}")
+                    {
+                        Connection = connectionName
+                    }
+                ).ConfigureAwait(false);
 
-            if (!string.IsNullOrWhiteSpace(blobName) && (blobName.ToUpper(CultureInfo.InvariantCulture) != "EMPTY-STRING"))
-            {
-                var blobContainer = client.GetContainerReference(container);
-                await blobContainer.CreateIfNotExistsAsync().ConfigureAwait(false);
-
-                var line = blobContainer.GetBlockBlobReference(blobName);
-
-                using (var memStream = new MemoryStream())
-                {
-                    await line.DownloadToStreamAsync(memStream).ConfigureAwait(false);
-                    return System.Text.Encoding.UTF8.GetString(memStream.ToArray());
-                }
-
-            }
-            else
-            {
-                htmlText = defaultContent ?? string.Empty;
-            }
-
-            return htmlText;
-        }
-
-
-        public static CloudBlobClient GetBlobClient()
-        {
-            _storageAccount = CloudStorageAccount.DevelopmentStorageAccount;
-            return _storageAccount.CreateCloudBlobClient();
+            return await blob.ReadToEndAsync();
         }
     }
 }

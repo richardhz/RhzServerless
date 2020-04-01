@@ -45,8 +45,10 @@ namespace RhzServerless
 
             });
 
-            var hvm = new BasicContentViewModel();
-            hvm.RequestPath = req?.Path.Value;
+            var hvm = new BasicContentViewModel
+            {
+                RequestPath = req?.Path.Value
+            };
 
             hvm.Lists.Add(RhzStorageTools.interestingLinksPk, iLinkSegment.Where(lc => lc.Published).Select(lc =>
             new LinkContentDto

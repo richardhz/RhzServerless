@@ -16,6 +16,7 @@ namespace RhzServerless
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "about")] HttpRequest req,
             [Table(RhzStorageTools.siteDisplayName, Connection = "AzureWebJobsStorage")] CloudTable siteDisplayTable,
+            IBinder binder,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
@@ -35,16 +36,19 @@ namespace RhzServerless
             }
             var aboutDisplay = (DisplayContent)aboutData.Result;
 
-
-            var hvm = new BasicContentViewModel();
-            hvm.RequestPath = req?.Path.Value;
-
-            var client = RhzStorageTools.GetBlobClient();
+            var hvm = new BasicContentViewModel
+            {
+                RequestPath = req?.Path.Value
+            };
 
             var aboutText = string.Empty;
             if (aboutDisplay != null && aboutDisplay.Published)
             {
-                aboutText = await RhzStorageTools.GetTextFromBlob(client, RhzStorageTools.siteCopyName, aboutDisplay.BlobName, aboutDisplay.HtmlContent).ConfigureAwait(false);
+                aboutText = await RhzStorageTools.ReadTextFromBlob(binder, RhzStorageTools.siteCopyName, aboutDisplay.BlobName, "AzureWebJobsStorage").ConfigureAwait(false);
+            }
+            else
+            {
+                aboutText = aboutDisplay.HtmlContent ?? string.Empty;
             }
 
             hvm.Lists.Add(RhzStorageTools.interestingLinksPk, iLinkSegment.Where(lc => lc.Published).Select(lc =>
