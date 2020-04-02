@@ -14,7 +14,7 @@ namespace RhzServerless
         [FunctionName("Document")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "document/{key}")] HttpRequest req, string key,
-            [Table(RhzStorageTools.postsName, Connection = "AzureWebJobsStorage")] CloudTable postsTable,
+            [Table(RhzStorageTools.postsName, RhzStorageTools.techPostPk, "{key}",  Connection = "AzureWebJobsStorage")] PostContent documentDisplay,
             IBinder binder,
             ILogger log)
         {
@@ -25,20 +25,24 @@ namespace RhzServerless
                 RequestPath = req?.Path.Value
             };
 
-            var getDocOp = TableOperation.Retrieve<PostContent>(RhzStorageTools.techPostPk, key);
-
-            var postData = await postsTable.ExecuteAsync(getDocOp).ConfigureAwait(false);
-
-            if (postData.HttpStatusCode == 200)
+            if (documentDisplay != null && documentDisplay.Published)
             {
-                var documentDisplay = (PostContent)postData.Result;
-                if (documentDisplay != null && documentDisplay.Published)
+                try
                 {
                     string documentText = await RhzStorageTools.ReadTextFromBlob(binder, RhzStorageTools.techDocs, documentDisplay.BlobName, "AzureWebJobsStorage").ConfigureAwait(false);
+                    if (documentText == null)
+                    {
+                        throw new System.Exception($"Possible Document name missmatch request id {key} resolved to {documentDisplay.BlobName}.");
+                    }
                     hvm.Content.Add("document", documentText);
                     return new OkObjectResult(hvm);
                 }
-
+                catch (System.Exception ex)
+                {
+                    log.LogInformation($"Data Error: {ex.Message}");
+                    throw;
+                }
+                
             }
             return new NotFoundResult();
         }

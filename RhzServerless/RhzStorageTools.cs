@@ -68,7 +68,10 @@ namespace RhzServerless
                         Connection = connectionName
                     }
                 ).ConfigureAwait(false);
-
+            if (blob == null)
+            {
+                return null;
+            }
             return await blob.ReadToEndAsync();
         }
     }
