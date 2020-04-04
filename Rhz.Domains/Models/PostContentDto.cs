@@ -4,7 +4,7 @@ namespace Rhz.Domains.Models
 {
     public class PostContentDto
     {
-        public string Key { get; set; }
+        //public string Key { get; set; }
         public string Caption { get; set; }
         public string Preview { get; set; }
         public string Content { get; set; }

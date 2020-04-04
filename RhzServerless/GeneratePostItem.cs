@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Microsoft.Azure.WebJobs;
@@ -40,6 +41,7 @@ namespace RhzServerless
 
                 log.LogInformation($"Preview Position: {linePosition}");
 
+                var captionString = Path.GetFileNameWithoutExtension(myQueueItem.BlobName.Replace("-", " "));
                 var post = new PostContent
                 {
                     PartitionKey = "Unknown",
@@ -47,7 +49,7 @@ namespace RhzServerless
                     Published = true,
                     PublishedOn = myQueueItem.PublishedOn,
                     UpdatedOn = myQueueItem.PublishedOn,
-                    Caption = myQueueItem.BlobName.Replace("-", " "),
+                    Caption = captionString,
                     Preview = cap?.InnerText ?? "Preview not provided",
                     RowKey = Guid.NewGuid().ToString("N"),
                     ETag = "*"

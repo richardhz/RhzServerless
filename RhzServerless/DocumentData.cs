@@ -35,7 +35,6 @@ namespace RhzServerless
             var lists = postListSegment.Where(pl => pl.Published).Select(pc =>
             new PostContentDto
             {
-                Key = pc.RowKey,
                 Caption = pc.Caption,
                 Preview = pc.Preview,
                 BlobName = pc.BlobName,

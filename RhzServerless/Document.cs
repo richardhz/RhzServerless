@@ -14,7 +14,6 @@ namespace RhzServerless
         [FunctionName("Document")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "document/{key}")] HttpRequest req, string key,
-            [Table(RhzStorageTools.postsName, RhzStorageTools.techPostPk, "{key}",  Connection = "AzureWebJobsStorage")] PostContent documentDisplay,
             IBinder binder,
             ILogger log)
         {
@@ -25,26 +24,21 @@ namespace RhzServerless
                 RequestPath = req?.Path.Value
             };
 
-            if (documentDisplay != null && documentDisplay.Published)
+            try
             {
-                try
+                string documentText = await RhzStorageTools.ReadTextFromBlob(binder, RhzStorageTools.techDocs, key, "AzureWebJobsStorage").ConfigureAwait(false);
+                if (documentText == null)
                 {
-                    string documentText = await RhzStorageTools.ReadTextFromBlob(binder, RhzStorageTools.techDocs, documentDisplay.BlobName, "AzureWebJobsStorage").ConfigureAwait(false);
-                    if (documentText == null)
-                    {
-                        throw new System.Exception($"Possible Document name missmatch request id {key} resolved to {documentDisplay.BlobName}.");
-                    }
-                    hvm.Content.Add("document", documentText);
-                    return new OkObjectResult(hvm);
+                    throw new System.Exception($"Possible Document name missmatch request id {key} cannot be resolved.");
                 }
-                catch (System.Exception ex)
-                {
-                    log.LogInformation($"Data Error: {ex.Message}");
-                    throw;
-                }
-                
+                hvm.Content.Add("document", documentText);
+                return new OkObjectResult(hvm);
             }
-            return new NotFoundResult();
+            catch (System.Exception ex)
+            {
+                log.LogInformation($"Data Error: {ex.Message}");
+                throw;
+            }
         }
     }
 }
