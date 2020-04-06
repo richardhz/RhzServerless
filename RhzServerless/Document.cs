@@ -13,7 +13,7 @@ namespace RhzServerless
     {
         [FunctionName("Document")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "document/{key}")] HttpRequest req, string key,
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "documents/{key}")] HttpRequest req, string key,
             IBinder binder,
             ILogger log)
         {

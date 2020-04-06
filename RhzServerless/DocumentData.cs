@@ -14,7 +14,7 @@ namespace RhzServerless
     {
         [FunctionName("DocumentData")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "documentList")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "documents")] HttpRequest req,
             [Table(RhzStorageTools.postsName, Connection = "AzureWebJobsStorage")] CloudTable postsTable,
             [Table(RhzStorageTools.siteDisplayName, Connection = "AzureWebJobsStorage")] CloudTable siteDisplayTable,
             ILogger log)
