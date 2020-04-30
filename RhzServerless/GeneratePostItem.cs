@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Microsoft.Azure.WebJobs;
@@ -42,9 +43,14 @@ namespace RhzServerless
                 log.LogInformation($"Preview Position: {linePosition}");
 
                 var captionString = Path.GetFileNameWithoutExtension(myQueueItem.BlobName.Replace("-", " "));
+
+
+                TableOperation insertUpdateOp = null;
+                TableOperation insertIdxOp = null;
+
                 var post = new PostContent
                 {
-                    PartitionKey = "Unknown",
+                    PartitionKey = RhzStorageTools.techPostPk,
                     BlobName = myQueueItem.BlobName,
                     Published = true,
                     PublishedOn = myQueueItem.PublishedOn,
@@ -55,8 +61,37 @@ namespace RhzServerless
                     ETag = "*"
                 };
 
-                var insertOp = TableOperation.Insert(post);
-                var newRecord = await postsTable.ExecuteAsync(insertOp);
+                // check if this document index exists
+
+                var fetchIdxOp = TableOperation.Retrieve<PostContentIdx>(RhzStorageTools.techPostIndexPk, myQueueItem.BlobName);
+                var newIdxRecord = await postsTable.ExecuteAsync(fetchIdxOp);
+               
+                if (newIdxRecord.Result != null)
+                {
+                    PostContentIdx documentIdx = null;
+                    documentIdx = ((PostContentIdx)newIdxRecord.Result);
+                    post.RowKey = documentIdx.DocumentId;
+                    post.PublishedOn = documentIdx.PublishedOn;
+                    insertUpdateOp = TableOperation.Replace(post);
+                }
+                else
+                {
+                    insertUpdateOp = TableOperation.Insert(post);
+                    insertIdxOp = TableOperation.Insert(new PostContentIdx
+                    {
+                        PartitionKey = RhzStorageTools.techPostIndexPk,
+                        RowKey = myQueueItem.BlobName,
+                        DocumentId = post.RowKey,
+                        PublishedOn = myQueueItem.PublishedOn,
+                    });
+                }
+
+                var newRecord = await postsTable.ExecuteAsync(insertUpdateOp);
+                if ((insertIdxOp != null) && newRecord.HttpStatusCode == (int)HttpStatusCode.NoContent)
+                {
+                    _ = await postsTable.ExecuteAsync(insertIdxOp);
+                }
+
                 //await postsTable.AddAsync(post);
                 log.LogInformation($"New Post status: {newRecord.HttpStatusCode}");
             }

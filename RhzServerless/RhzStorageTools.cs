@@ -16,7 +16,8 @@ namespace RhzServerless
         public const string techDocs = "tech-documents";
         public const string postsName = "posts";
 
-        public const string techPostPk = "Unknown";
+        public const string techPostPk = "TechDoc";
+        public const string techPostIndexPk = "DocIndex";
 
         public const string heroPk = "hero";
         public const string heroRk = "index";
