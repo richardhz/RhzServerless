@@ -1,8 +1,5 @@
 ﻿using Microsoft.Azure.WebJobs;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.Table;
-using System.Globalization;
+using Microsoft.Azure.Cosmos.Table;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -10,7 +7,7 @@ namespace RhzServerless
 {
     public static class RhzStorageTools
     {
-        public static CloudStorageAccount _storageAccount;
+        //public static CloudStorageAccount _storageAccount;
         public const string siteDisplayName = "sitedisplays";
         public const string siteCopyName = "site-copy";
         public const string techDocs = "tech-documents";
