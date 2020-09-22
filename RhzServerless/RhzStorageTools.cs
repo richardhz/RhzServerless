@@ -23,6 +23,7 @@ namespace RhzServerless
 
         public const string interestingLinksPk = "interestinglinks";
         public const string dotNetLinksPk = "dotnetlinks";
+        public const string mailStatusPk = "mailstatus";
         public const string aboutPk = "about";
         public const string aboutRk = "me";
 

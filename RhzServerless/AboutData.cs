@@ -24,11 +24,12 @@ namespace RhzServerless
 
             var interestingLinksQuery = RhzStorageTools.GenerateContentQuery<LinkContent>(RhzStorageTools.interestingLinksPk);
             var dotnetLinksQuery = RhzStorageTools.GenerateContentQuery<LinkContent>(RhzStorageTools.dotNetLinksPk);
-
+            var mailStatusQuery = RhzStorageTools.GenerateContentQuery<LinkContent>(RhzStorageTools.mailStatusPk);
             var getAboutOp = TableOperation.Retrieve<DisplayContent>(RhzStorageTools.aboutPk, RhzStorageTools.aboutRk);
 
             var iLinkSegment = await siteDisplayTable.ExecuteQuerySegmentedAsync(interestingLinksQuery, null).ConfigureAwait(false);
             var dLinkSegment = await siteDisplayTable.ExecuteQuerySegmentedAsync(dotnetLinksQuery, null).ConfigureAwait(false);
+            var mailstatusSegment = await siteDisplayTable.ExecuteQuerySegmentedAsync(mailStatusQuery, null).ConfigureAwait(false);
             var aboutData = await siteDisplayTable.ExecuteAsync(getAboutOp).ConfigureAwait(false);
 
             if (aboutData.Result == null)
@@ -60,6 +61,13 @@ namespace RhzServerless
                 Url = lc.Url
             }));
             hvm.Lists.Add(RhzStorageTools.dotNetLinksPk, dLinkSegment.Where(lc => lc.Published).Select(lc =>
+            new LinkContentDto
+            {
+                Caption = lc.Caption,
+                Target = lc.Target,
+                Url = lc.Url
+            }));
+            hvm.Lists.Add(RhzStorageTools.mailStatusPk, mailstatusSegment.Where(lc => lc.Published).Select(lc =>
             new LinkContentDto
             {
                 Caption = lc.Caption,
